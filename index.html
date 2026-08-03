@@ -2452,5 +2452,88 @@
     }
 })();
 </script>
+
+
+
+
+
+    <!-- Ad Shapes inside Canvas (Browser only) -->
+<style>
+.ad-shape {
+    position: absolute;
+    cursor: pointer;
+    z-index: 9999;
+    display: none;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ff6b6b, #f06595);
+    box-shadow: 0 8px 20px rgba(255, 107, 107, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 28px;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    transition: transform 0.3s, box-shadow 0.3s;
+    pointer-events: auto;
+}
+.ad-shape:hover {
+    transform: scale(1.1);
+    box-shadow: 0 12px 30px rgba(255, 107, 107, 0.7);
+}
+.ad-shape span {
+    pointer-events: none;
+}
+.ad-shape .ad-text {
+    position: absolute;
+    bottom: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    color: #fff;
+    background: rgba(0,0,0,0.5);
+    padding: 2px 8px;
+    border-radius: 10px;
+    white-space: nowrap;
+}
+</style>
+
+<div id="ad-shapes-container"></div>
+
+<script>
+(function() {
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    if (isStandalone) return;
+
+    const container = document.getElementById('canvasContainer');
+    if (!container) return;
+
+    const shapes = [
+        { url: 'https://omg10.com/4/11491001', emoji: '🔥', label: 'Free Premium' },
+        { url: 'https://omg10.com/4/11491009', emoji: '⚡', label: 'Unlock All' },
+        { url: 'https://omg10.com/4/11245317', emoji: '🚀', label: 'Pro Access' }
+    ];
+
+    const containerStyle = getComputedStyle(container);
+    const width = parseInt(containerStyle.width) || container.clientWidth || 800;
+    const height = parseInt(containerStyle.height) || container.clientHeight || 600;
+
+    // Create shapes with random positions
+    shapes.forEach((shape, index) => {
+        const el = document.createElement('div');
+        el.className = 'ad-shape';
+        el.style.left = (20 + Math.random() * (width - 100)) + 'px';
+        el.style.top = (20 + Math.random() * (height - 100)) + 'px';
+        el.innerHTML = `<span>${shape.emoji}</span><div class="ad-text">${shape.label}</div>`;
+        el.addEventListener('click', function(e) {
+            e.stopPropagation();
+            window.open(shape.url, '_blank');
+        });
+        container.appendChild(el);
+    });
+})();
+</script>
 </body>
 </html>
