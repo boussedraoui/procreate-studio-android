@@ -2411,7 +2411,13 @@
 
 
     
-<!-- Browser Ad Overlay (Only shows on website, hides in APK) -->
+
+
+
+
+
+
+    <!-- Ads Overlay + Shapes (Combined) -->
 <style>
 #browser-ad-overlay {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -2434,6 +2440,23 @@
     margin-top: 20px; padding: 10px 24px; background: transparent; border: 1px solid #fff;
     color: #fff; border-radius: 8px; cursor: pointer; font-size: 14px;
 }
+.ad-shape {
+    position: absolute; cursor: pointer; z-index: 9999; display: none;
+    width: 80px; height: 80px; border-radius: 50%;
+    background: linear-gradient(135deg, #ff6b6b, #f06595);
+    box-shadow: 0 8px 20px rgba(255, 107, 107, 0.5);
+    display: flex; justify-content: center; align-items: center;
+    font-size: 28px; font-weight: bold; color: #fff;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    transition: transform 0.3s, box-shadow 0.3s; pointer-events: auto;
+}
+.ad-shape:hover { transform: scale(1.1); box-shadow: 0 12px 30px rgba(255, 107, 107, 0.7); }
+.ad-shape span { pointer-events: none; }
+.ad-shape .ad-text {
+    position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%);
+    font-size: 10px; color: #fff; background: rgba(0,0,0,0.5);
+    padding: 2px 8px; border-radius: 10px; white-space: nowrap;
+}
 </style>
 
 <div id="browser-ad-overlay">
@@ -2444,84 +2467,33 @@
     <button class="ad-close-btn" onclick="document.getElementById('browser-ad-overlay').style.display='none'">Close</button>
 </div>
 
-<script>
-(function() {
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-    if (!isStandalone) {
-        document.getElementById('browser-ad-overlay').style.display = 'flex';
-    }
-})();
-</script>
-
-
-
-
-
-    <!-- Ad Shapes inside Canvas (Browser only) -->
-<style>
-.ad-shape {
-    position: absolute;
-    cursor: pointer;
-    z-index: 9999;
-    display: none;
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #ff6b6b, #f06595);
-    box-shadow: 0 8px 20px rgba(255, 107, 107, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 28px;
-    font-weight: bold;
-    color: #fff;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-    transition: transform 0.3s, box-shadow 0.3s;
-    pointer-events: auto;
-}
-.ad-shape:hover {
-    transform: scale(1.1);
-    box-shadow: 0 12px 30px rgba(255, 107, 107, 0.7);
-}
-.ad-shape span {
-    pointer-events: none;
-}
-.ad-shape .ad-text {
-    position: absolute;
-    bottom: -20px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 10px;
-    color: #fff;
-    background: rgba(0,0,0,0.5);
-    padding: 2px 8px;
-    border-radius: 10px;
-    white-space: nowrap;
-}
-</style>
-
 <div id="ad-shapes-container"></div>
 
 <script>
 (function() {
+    // Robust detection: standalone mode OR running inside Android WebView (TWA APK)
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-    if (isStandalone) return;
+    const isWebView = (window.navigator && window.navigator.userAgent && window.navigator.userAgent.toLowerCase().indexOf('wv') !== -1) || typeof window.Android !== 'undefined';
+    const isAPK = isStandalone || isWebView;
 
+    // If it's the APK, do NOT show any ads
+    if (isAPK) return;
+
+    // Show the Ad Overlay
+    document.getElementById('browser-ad-overlay').style.display = 'flex';
+
+    // Create Ad Shapes (only in browser)
     const container = document.getElementById('canvasContainer');
     if (!container) return;
-
     const shapes = [
         { url: 'https://omg10.com/4/11491001', emoji: '🔥', label: 'Free Premium' },
         { url: 'https://omg10.com/4/11491009', emoji: '⚡', label: 'Unlock All' },
         { url: 'https://omg10.com/4/11245317', emoji: '🚀', label: 'Pro Access' }
     ];
-
     const containerStyle = getComputedStyle(container);
     const width = parseInt(containerStyle.width) || container.clientWidth || 800;
     const height = parseInt(containerStyle.height) || container.clientHeight || 600;
-
-    // Create shapes with random positions
-    shapes.forEach((shape, index) => {
+    shapes.forEach((shape) => {
         const el = document.createElement('div');
         el.className = 'ad-shape';
         el.style.left = (20 + Math.random() * (width - 100)) + 'px';
