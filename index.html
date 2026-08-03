@@ -2417,72 +2417,31 @@
 
 
 
-    <!-- Ads Overlay + Shapes (Combined) -->
-<style>
-#browser-ad-overlay {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(4px);
-    display: none; flex-direction: column; justify-content: center; align-items: center;
-    z-index: 9998; padding: 20px; box-sizing: border-box; pointer-events: auto;
-}
-#browser-ad-overlay h3 {
-    color: #fff; margin-bottom: 20px; text-align: center; font-size: 22px;
-}
-.ad-button {
-    display: block; width: 100%; max-width: 300px; margin: 8px auto; padding: 16px;
-    background: var(--accent2); color: #000; text-decoration: none; border-radius: 12px;
-    font-weight: bold; text-align: center; font-size: 17px; cursor: pointer;
-    border: 2px solid #fff; box-shadow: 0 6px 15px rgba(0,0,0,0.6);
-    transition: transform 0.2s;
-}
-.ad-button:active { transform: scale(0.95); }
-.ad-close-btn {
-    margin-top: 20px; padding: 10px 24px; background: transparent; border: 1px solid #fff;
-    color: #fff; border-radius: 8px; cursor: pointer; font-size: 14px;
-}
-.ad-shape {
-    position: absolute; cursor: pointer; z-index: 9999; display: none;
-    width: 80px; height: 80px; border-radius: 50%;
-    background: linear-gradient(135deg, #ff6b6b, #f06595);
-    box-shadow: 0 8px 20px rgba(255, 107, 107, 0.5);
-    display: flex; justify-content: center; align-items: center;
-    font-size: 28px; font-weight: bold; color: #fff;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-    transition: transform 0.3s, box-shadow 0.3s; pointer-events: auto;
-}
-.ad-shape:hover { transform: scale(1.1); box-shadow: 0 12px 30px rgba(255, 107, 107, 0.7); }
-.ad-shape span { pointer-events: none; }
-.ad-shape .ad-text {
-    position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%);
-    font-size: 10px; color: #fff; background: rgba(0,0,0,0.5);
-    padding: 2px 8px; border-radius: 10px; white-space: nowrap;
-}
-</style>
-
-<div id="browser-ad-overlay">
-    <h3>Unlock Full Features in the App</h3>
-    <a href="https://omg10.com/4/11491001" target="_blank" rel="noopener noreferrer" class="ad-button">🔥 Claim Premium Now</a>
-    <a href="https://omg10.com/4/11491009" target="_blank" rel="noopener noreferrer" class="ad-button">⚡ Unlock Unlimited Access</a>
-    <a href="https://omg10.com/4/11245317" target="_blank" rel="noopener noreferrer" class="ad-button">🚀 Get Pro Version</a>
-    <button class="ad-close-btn" onclick="document.getElementById('browser-ad-overlay').style.display='none'">Close</button>
-</div>
-
-<div id="ad-shapes-container"></div>
-
-<script>
+    <script>
 (function() {
-    // Robust detection: standalone mode OR running inside Android WebView (TWA APK)
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-    const isWebView = (window.navigator && window.navigator.userAgent && window.navigator.userAgent.toLowerCase().indexOf('wv') !== -1) || typeof window.Android !== 'undefined';
-    const isAPK = isStandalone || isWebView;
+    // Ultra-robust APK detection
+    function isRunningInAPK() {
+        // 1. Native display mode
+        if (window.matchMedia('(display-mode: standalone)').matches) return true;
+        // 2. iOS / some Android standalone
+        if (window.navigator.standalone) return true;
+        // 3. Look for Android WebView / TWA in user agent
+        const ua = window.navigator.userAgent.toLowerCase();
+        if (ua.indexOf('android') !== -1 && (ua.indexOf('wv') !== -1 || ua.indexOf('twa') !== -1)) return true;
+        // 4. Check for the Android bridge object
+        if (typeof window.Android !== 'undefined') return true;
+        // 5. Check for PWABuilder injected marker
+        if (window.__PWABuilder__) return true;
+        
+        return false; // It's a standard web browser
+    }
 
-    // If it's the APK, do NOT show any ads
-    if (isAPK) return;
+    // If it's the APK, STOP immediately and never show ads
+    if (isRunningInAPK()) return;
 
-    // Show the Ad Overlay
+    // ----------- ADS CODE BELOW (Only runs in Browser) -----------
     document.getElementById('browser-ad-overlay').style.display = 'flex';
 
-    // Create Ad Shapes (only in browser)
     const container = document.getElementById('canvasContainer');
     if (!container) return;
     const shapes = [
