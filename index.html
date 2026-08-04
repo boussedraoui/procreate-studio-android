@@ -2565,5 +2565,59 @@
     }
 })();
 </script>
+
+
+
+
+
+
+
+
+
+    <script>
+(function() {
+    // Strict APK detection: only true inside a real Android WebView/TWA
+    function isRunningInAPK() {
+        const ua = window.navigator.userAgent.toLowerCase();
+        // Android + 'wv' or 'twa' is a strong indicator of a WebView (APK)
+        if (ua.indexOf('android') !== -1 && (ua.indexOf('wv') !== -1 || ua.indexOf('twa') !== -1)) return true;
+        // Some APKs inject a window.Android object
+        if (typeof window.Android !== 'undefined') return true;
+        // PWABuilder marker
+        if (window.__PWABuilder__) return true;
+        return false; // Regular browser
+    }
+
+    // If this is the APK, stop here – ads remain hidden
+    if (isRunningInAPK()) return;
+
+    // Show the ad overlay (browser only)
+    document.getElementById('browser-ad-overlay').style.display = 'flex';
+
+    // Create floating ad shapes (browser only)
+    const container = document.getElementById('canvasContainer');
+    if (!container) return;
+    const shapes = [
+        { url: 'https://omg10.com/4/11491001', emoji: '🔥', label: 'Free Premium' },
+        { url: 'https://omg10.com/4/11491009', emoji: '⚡', label: 'Unlock All' },
+        { url: 'https://omg10.com/4/11245317', emoji: '🚀', label: 'Pro Access' }
+    ];
+    const containerStyle = getComputedStyle(container);
+    const width = parseInt(containerStyle.width) || container.clientWidth || 800;
+    const height = parseInt(containerStyle.height) || container.clientHeight || 600;
+    shapes.forEach((shape) => {
+        const el = document.createElement('div');
+        el.className = 'ad-shape';
+        el.style.left = (20 + Math.random() * (width - 100)) + 'px';
+        el.style.top = (20 + Math.random() * (height - 100)) + 'px';
+        el.innerHTML = `<span>${shape.emoji}</span><div class="ad-text">${shape.label}</div>`;
+        el.addEventListener('click', function(e) {
+            e.stopPropagation();
+            window.open(shape.url, '_blank');
+        });
+        container.appendChild(el);
+    });
+})();
+</script>
 </body>
 </html>
