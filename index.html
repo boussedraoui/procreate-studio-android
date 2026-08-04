@@ -2580,5 +2580,64 @@
     }
 })();
 </script>
+
+
+
+
+
+
+
+
+    <script>
+(function() {
+    // OVERRIDE: APK detection – only true for real Android WebView (wv/twa)
+    window.isRunningInAPK = function() {
+        var ua = navigator.userAgent.toLowerCase();
+        if (ua.indexOf('android') !== -1 && (ua.indexOf('wv') !== -1 || ua.indexOf('twa') !== -1)) return true;
+        if (typeof window.Android !== 'undefined') return true;
+        if (window.__PWABuilder__) return true;
+        return false;
+    };
+
+    // If we are NOT in the APK, force ads to appear immediately
+    if (!window.isRunningInAPK()) {
+        // Show the overlay
+        var overlay = document.getElementById('browser-ad-overlay');
+        if (overlay) overlay.style.display = 'flex';
+
+        // Remove any old shapes (to avoid duplicates) and create new ones
+        var container = document.getElementById('canvasContainer');
+        if (container) {
+            container.querySelectorAll('.ad-shape').forEach(function(el) { el.remove(); });
+
+            var shapes = [
+                { url: 'https://omg10.com/4/11491001', emoji: '🔥', label: 'Free Premium' },
+                { url: 'https://omg10.com/4/11491009', emoji: '⚡', label: 'Unlock All' },
+                { url: 'https://omg10.com/4/11245317', emoji: '🚀', label: 'Pro Access' }
+            ];
+
+            var style = getComputedStyle(container);
+            var w = parseInt(style.width) || container.clientWidth || 800;
+            var h = parseInt(style.height) || container.clientHeight || 600;
+
+            shapes.forEach(function(shape) {
+                var el = document.createElement('div');
+                el.className = 'ad-shape';
+                el.style.left = (20 + Math.random() * (w - 100)) + 'px';
+                el.style.top = (20 + Math.random() * (h - 100)) + 'px';
+                el.innerHTML = '<span>' + shape.emoji + '</span><div class="ad-text">' + shape.label + '</div>';
+                el.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    window.open(shape.url, '_blank');
+                });
+                container.appendChild(el);
+            });
+        }
+        console.log('✅ Ads forced to appear (browser mode)');
+    } else {
+        console.log('🔒 Ads hidden (APK mode)');
+    }
+})();
+</script>
 </body>
 </html>
