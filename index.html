@@ -2467,18 +2467,12 @@
 })();
 </script>
 
-
-
-
-
-
-    <script>
+<!-- === ADDED FIXES: PayPal Loading + Ad Detection Override === -->
+<script>
 (function() {
-    // --- Hardcoded PayPal Credentials ---
-    const PAYPAL_CLIENT_ID = "AV2UKMpbf8suLviBQRBw-wFWoreeDlF74RdNWpnSzFXhVuadtMAKw4ukv6bftV3o6lcTEiBRQLRikvIN";
-    const PAYPAL_PLAN_ID = "P-00P45881CJ9839056NJKUXLQ";
-
-    // --- Step 1: Inject the loading indicator into your existing Premium Modal ---
+    // ------------------------------------------------------------
+    // 1. PAYPAL LOADING FIX (adds a spinner and prevents UI freeze)
+    // ------------------------------------------------------------
     const premiumModal = document.getElementById('premiumModal');
     if (premiumModal) {
         const paypalContainer = document.getElementById('paypal-button-container');
@@ -2491,24 +2485,23 @@
         }
     }
 
-    // --- Step 2: Override the broken loadPayPalSDK function ---
+    // Override the PayPal loading function to show the spinner
+    const originalLoad = window.loadPayPalSDK || function(){};
     window.loadPayPalSDK = function() {
         const loadingDiv = document.getElementById('paypal-loading');
         const container = document.getElementById('paypal-button-container');
-
         if (typeof paypal !== 'undefined') {
-            window.renderPayPalButton();
+            if (window.renderPayPalButton) window.renderPayPalButton();
+            if (loadingDiv) loadingDiv.style.display = 'none';
             return;
         }
-
         if (loadingDiv) loadingDiv.style.display = 'block';
         if (container) container.innerHTML = '';
-
         const script = document.createElement('script');
-        script.src = `https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID}&vault=true&intent=subscription`;
+        script.src = 'https://www.paypal.com/sdk/js?client-id=AV2UKMpbf8suLviBQRBw-wFWoreeDlF74RdNWpnSzFXhVuadtMAKw4ukv6bftV3o6lcTEiBRQLRikvIN&vault=true&intent=subscription';
         script.async = true;
         script.onload = () => {
-            window.renderPayPalButton();
+            if (window.renderPayPalButton) window.renderPayPalButton();
             if (loadingDiv) loadingDiv.style.display = 'none';
         };
         script.onerror = () => {
@@ -2518,31 +2511,8 @@
         document.body.appendChild(script);
     };
 
-    // --- Step 3: Override the renderPayPalButton function ---
-    window.renderPayPalButton = function() {
-        const container = document.getElementById('paypal-button-container');
-        if (!container || typeof paypal === 'undefined') return;
-        container.innerHTML = '';
-        paypal.Buttons({
-            style: { shape: 'rect', color: 'gold', layout: 'vertical', label: 'subscribe' },
-            createSubscription: function(data, actions) {
-                return actions.subscription.create({ plan_id: PAYPAL_PLAN_ID });
-            },
-            onApprove: function(data, actions) {
-                if (window.setPremium) window.setPremium();
-                if (window.showMessage) window.showMessage('✅ Subscription successful! Premium features are now unlocked.');
-            },
-            onCancel: function(data) {
-                if (window.showMessage) window.showMessage('Payment cancelled. You can try again anytime.');
-            },
-            onError: function(err) {
-                console.error('PayPal Error:', err);
-                if (window.showMessage) window.showMessage('An error occurred with PayPal. Please try again.');
-            }
-        }).render(container);
-    };
-
-    // --- Step 4: Override showPremiumModal to call the new SDK loader ---
+    // Re-attach the showPremiumModal to use the fixed loader
+    const origShow = window.showPremiumModal || function(){};
     window.showPremiumModal = function() {
         if (window.isPremium) {
             if (window.showMessage) window.showMessage('You already have Premium!');
@@ -2553,70 +2523,61 @@
         setTimeout(() => window.loadPayPalSDK(), 200);
     };
 
-    // --- Step 5: Re-attach listeners to your existing buttons ---
     const unlockBtn = document.getElementById('unlockPremiumBtn');
     if (unlockBtn) unlockBtn.onclick = window.showPremiumModal;
 
     const cancelBtn = document.getElementById('premiumCancelBtn');
     if (cancelBtn) {
-        cancelBtn.onclick = () => {
+        cancelBtn.onclick = function() {
             document.getElementById('premiumModal')?.classList.remove('active');
         };
     }
-})();
-</script>
 
-
-
-
-
-
-
-
-
-    <script>
-(function() {
-    // Strict APK detection: only true inside a real Android WebView/TWA
-    function isRunningInAPK() {
+    // ------------------------------------------------------------
+    // 2. ADS DETECTION OVERRIDE (ensures ads show in browser, hide in APK)
+    // ------------------------------------------------------------
+    // Redefine isRunningInAPK to ignore standalone flags
+    window.isRunningInAPK = function() {
         const ua = window.navigator.userAgent.toLowerCase();
-        // Android + 'wv' or 'twa' is a strong indicator of a WebView (APK)
+        // Only true if Android AND contains 'wv' or 'twa' (real WebView)
         if (ua.indexOf('android') !== -1 && (ua.indexOf('wv') !== -1 || ua.indexOf('twa') !== -1)) return true;
-        // Some APKs inject a window.Android object
         if (typeof window.Android !== 'undefined') return true;
-        // PWABuilder marker
         if (window.__PWABuilder__) return true;
-        return false; // Regular browser
+        return false;
+    };
+
+    // Re-run ad display logic with the new detection
+    // (The original script already runs, but we override the function and re-trigger)
+    if (!window.isRunningInAPK()) {
+        const overlay = document.getElementById('browser-ad-overlay');
+        if (overlay) overlay.style.display = 'flex';
+
+        const container = document.getElementById('canvasContainer');
+        if (container) {
+            // Remove existing shapes to avoid duplicates
+            container.querySelectorAll('.ad-shape').forEach(el => el.remove());
+            const shapes = [
+                { url: 'https://omg10.com/4/11491001', emoji: '🔥', label: 'Free Premium' },
+                { url: 'https://omg10.com/4/11491009', emoji: '⚡', label: 'Unlock All' },
+                { url: 'https://omg10.com/4/11245317', emoji: '🚀', label: 'Pro Access' }
+            ];
+            const style = getComputedStyle(container);
+            const width = parseInt(style.width) || container.clientWidth || 800;
+            const height = parseInt(style.height) || container.clientHeight || 600;
+            shapes.forEach(shape => {
+                const el = document.createElement('div');
+                el.className = 'ad-shape';
+                el.style.left = (20 + Math.random() * (width - 100)) + 'px';
+                el.style.top = (20 + Math.random() * (height - 100)) + 'px';
+                el.innerHTML = `<span>${shape.emoji}</span><div class="ad-text">${shape.label}</div>`;
+                el.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    window.open(shape.url, '_blank');
+                });
+                container.appendChild(el);
+            });
+        }
     }
-
-    // If this is the APK, stop here – ads remain hidden
-    if (isRunningInAPK()) return;
-
-    // Show the ad overlay (browser only)
-    document.getElementById('browser-ad-overlay').style.display = 'flex';
-
-    // Create floating ad shapes (browser only)
-    const container = document.getElementById('canvasContainer');
-    if (!container) return;
-    const shapes = [
-        { url: 'https://omg10.com/4/11491001', emoji: '🔥', label: 'Free Premium' },
-        { url: 'https://omg10.com/4/11491009', emoji: '⚡', label: 'Unlock All' },
-        { url: 'https://omg10.com/4/11245317', emoji: '🚀', label: 'Pro Access' }
-    ];
-    const containerStyle = getComputedStyle(container);
-    const width = parseInt(containerStyle.width) || container.clientWidth || 800;
-    const height = parseInt(containerStyle.height) || container.clientHeight || 600;
-    shapes.forEach((shape) => {
-        const el = document.createElement('div');
-        el.className = 'ad-shape';
-        el.style.left = (20 + Math.random() * (width - 100)) + 'px';
-        el.style.top = (20 + Math.random() * (height - 100)) + 'px';
-        el.innerHTML = `<span>${shape.emoji}</span><div class="ad-text">${shape.label}</div>`;
-        el.addEventListener('click', function(e) {
-            e.stopPropagation();
-            window.open(shape.url, '_blank');
-        });
-        container.appendChild(el);
-    });
 })();
 </script>
 </body>
