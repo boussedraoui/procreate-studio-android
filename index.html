@@ -2548,7 +2548,7 @@
 
 
 
-    <!-- 3 Ads Overlay – URL‑based detection (never fails) -->
+    <!-- 3 Ads Overlay – 100% Environment Detection (No URL tricks) -->
 <style>
 #adLockModal {
     position: fixed; top: 0; left: 0;
@@ -2608,19 +2608,29 @@
 
 <script>
 (function() {
-    // ----- 100% RELIABLE DETECTION via URL parameter -----
-    function isAPK() {
-        // Check if the current URL contains "?apk=true"
-        return window.location.search.indexOf('apk=true') !== -1;
+    // ----- ULTRA‑ROBUST APK DETECTION (all checks) -----
+    function isRunningInAPK() {
+        // 1. display-mode (TWA)
+        if (window.matchMedia('(display-mode: standalone)').matches) return true;
+        // 2. navigator.standalone (some TWA)
+        if (window.navigator.standalone) return true;
+        // 3. User Agent (Android + wv / twa)
+        var ua = navigator.userAgent.toLowerCase();
+        if (ua.indexOf('android') !== -1 && (ua.indexOf('wv') !== -1 || ua.indexOf('twa') !== -1)) return true;
+        // 4. PWABuilder injected objects
+        if (typeof window.Android !== 'undefined') return true;
+        if (window.__PWABuilder__) return true;
+        // 5. If none match, it's a browser
+        return false;
     }
 
-    if (isAPK()) {
-        // In APK: remove the modal completely
+    // If it's the APK, remove modal and exit – ads never appear
+    if (isRunningInAPK()) {
         document.getElementById('adLockModal')?.remove();
         return;
     }
 
-    // ----- Website mode: show modal on click/touch -----
+    // ----- Browser mode – show modal on any click/touch -----
     var modal = document.getElementById('adLockModal');
     var closeBtn = document.getElementById('adClose');
 
