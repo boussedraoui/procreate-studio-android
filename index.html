@@ -2542,7 +2542,7 @@
 
 
 
-    <!-- Website Purchase Lock -->
+    <!-- Purchase Lock with manual flag -->
 <style>
 #purchaseLockModal {
     position: fixed;
@@ -2623,45 +2623,35 @@
 
 <script>
 (function() {
-    // Reliable APK Detection using User Agent
-    function isRunningInAPK() {
-        var ua = navigator.userAgent.toLowerCase();
-        if (ua.indexOf('android') !== -1 && (ua.indexOf('wv') !== -1 || ua.indexOf('twa') !== -1)) return true;
-        if (typeof window.Android !== 'undefined') return true;
-        if (window.__PWABuilder__) return true;
-        return false;
+    // 👇 THIS IS SET TO `true` FOR THE APK BUILD
+    const IS_APK_BUILD = true; 
+
+    if (IS_APK_BUILD) {
+        // Remove the modal entirely inside the APK
+        document.getElementById('purchaseLockModal')?.remove();
+        return;
     }
 
-    // If APK, do nothing.
-    if (isRunningInAPK()) return;
+    // Browser mode – show modal on click/touch
+    const modal = document.getElementById('purchaseLockModal');
+    const closeBtn = document.getElementById('purchaseLockClose');
 
-    var modal = document.getElementById('purchaseLockModal');
-    var closeBtn = document.getElementById('purchaseLockClose');
+    function showModal() { modal.classList.add('active'); }
 
-    function showModal() {
-        modal.classList.add('active');
-    }
-
-    // Intercept all clicks and touches
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', e => {
         if (modal.contains(e.target)) return;
         e.stopPropagation();
         showModal();
     }, true);
 
-    document.addEventListener('touchstart', function(e) {
+    document.addEventListener('touchstart', e => {
         if (modal.contains(e.target)) return;
         e.stopPropagation();
         showModal();
     }, { passive: true, capture: true });
 
-    closeBtn.addEventListener('click', function() {
-        modal.classList.remove('active');
-    });
-
-    modal.addEventListener('click', function(e) {
-        if (e.target === modal) modal.classList.remove('active');
-    });
+    closeBtn.addEventListener('click', () => modal.classList.remove('active'));
+    modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('active'); });
 })();
 </script>
 </body>
