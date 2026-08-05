@@ -2542,7 +2542,7 @@
 
 
 
-    <!-- Website Purchase Lock – fixed detection -->
+    <!-- Website Purchase Lock -->
 <style>
 #purchaseLockModal {
     position: fixed;
@@ -2561,9 +2561,9 @@
     display: flex;
 }
 #purchaseLockModal .modal-box {
-    background: var(--surface, #1e1e1e);
-    border: 1px solid var(--border, #3a3a3c);
-    border-radius: var(--radius, 16px);
+    background: #1e1e1e;
+    border: 1px solid #3a3a3c;
+    border-radius: 16px;
     padding: 30px 24px;
     max-width: 400px;
     width: 100%;
@@ -2571,12 +2571,12 @@
     box-shadow: 0 12px 40px rgba(0,0,0,0.8);
 }
 #purchaseLockModal h2 {
-    color: var(--accent2, #4ecdc4);
+    color: #4ecdc4;
     margin-bottom: 12px;
     font-size: 22px;
 }
 #purchaseLockModal p {
-    color: var(--text, #e0e0e0);
+    color: #e0e0e0;
     font-size: 15px;
     line-height: 1.6;
     margin-bottom: 20px;
@@ -2584,7 +2584,7 @@
 #purchaseLockModal .gumroad-btn {
     display: inline-block;
     padding: 14px 28px;
-    background: var(--accent2, #4ecdc4);
+    background: #4ecdc4;
     color: #000;
     font-weight: bold;
     border-radius: 40px;
@@ -2598,8 +2598,8 @@
 }
 #purchaseLockModal .close-btn {
     background: transparent;
-    border: 1px solid var(--border, #3a3a3c);
-    color: var(--text, #e0e0e0);
+    border: 1px solid #3a3a3c;
+    color: #e0e0e0;
     padding: 8px 20px;
     border-radius: 30px;
     font-size: 13px;
@@ -2607,7 +2607,7 @@
     display: inline-block;
 }
 #purchaseLockModal .close-btn:hover {
-    background: var(--surface2, #2a2a2e);
+    background: #2a2a2e;
 }
 </style>
 
@@ -2623,29 +2623,18 @@
 
 <script>
 (function() {
-    // ----- ULTRA‑ROBUST APK DETECTION (includes standalone) -----
+    // Reliable APK Detection using User Agent
     function isRunningInAPK() {
-        // 1. Display mode (guaranteed 'standalone' in TWA)
-        if (window.matchMedia('(display-mode: standalone)').matches) return true;
-        // 2. iOS standalone (irrelevant but safe)
-        if (window.navigator.standalone) return true;
-        // 3. Android WebView / TWA user agent
         var ua = navigator.userAgent.toLowerCase();
         if (ua.indexOf('android') !== -1 && (ua.indexOf('wv') !== -1 || ua.indexOf('twa') !== -1)) return true;
-        // 4. Android bridge object
         if (typeof window.Android !== 'undefined') return true;
-        // 5. PWABuilder marker
         if (window.__PWABuilder__) return true;
         return false;
     }
 
-    // Log detection result to console (so you can verify it's working)
-    console.log('🔍 APK detection result:', isRunningInAPK() ? 'APK mode – modal hidden' : 'Browser mode – modal active');
-
-    // If it's the APK, do nothing – the user has paid for the app.
+    // If APK, do nothing.
     if (isRunningInAPK()) return;
 
-    // ----- Show the purchase modal on any click/touch -----
     var modal = document.getElementById('purchaseLockModal');
     var closeBtn = document.getElementById('purchaseLockClose');
 
@@ -2653,7 +2642,7 @@
         modal.classList.add('active');
     }
 
-    // Intercept all clicks/touches on the page (capturing phase)
+    // Intercept all clicks and touches
     document.addEventListener('click', function(e) {
         if (modal.contains(e.target)) return;
         e.stopPropagation();
@@ -2666,18 +2655,12 @@
         showModal();
     }, { passive: true, capture: true });
 
-    // Close button inside the modal
-    if (closeBtn) {
-        closeBtn.addEventListener('click', function() {
-            modal.classList.remove('active');
-        });
-    }
+    closeBtn.addEventListener('click', function() {
+        modal.classList.remove('active');
+    });
 
-    // Also close if user clicks the dark background
     modal.addEventListener('click', function(e) {
-        if (e.target === modal) {
-            modal.classList.remove('active');
-        }
+        if (e.target === modal) modal.classList.remove('active');
     });
 })();
 </script>
