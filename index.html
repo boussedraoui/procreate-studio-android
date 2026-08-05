@@ -2538,7 +2538,11 @@
 
 
 
-    <!-- Website Purchase Lock (browser only, hidden in APK) -->
+
+
+
+
+    <!-- Website Purchase Lock – fixed detection -->
 <style>
 #purchaseLockModal {
     position: fixed;
@@ -2619,14 +2623,24 @@
 
 <script>
 (function() {
-    // ----- APK detection (identical to previous working one) -----
+    // ----- ULTRA‑ROBUST APK DETECTION (includes standalone) -----
     function isRunningInAPK() {
+        // 1. Display mode (guaranteed 'standalone' in TWA)
+        if (window.matchMedia('(display-mode: standalone)').matches) return true;
+        // 2. iOS standalone (irrelevant but safe)
+        if (window.navigator.standalone) return true;
+        // 3. Android WebView / TWA user agent
         var ua = navigator.userAgent.toLowerCase();
         if (ua.indexOf('android') !== -1 && (ua.indexOf('wv') !== -1 || ua.indexOf('twa') !== -1)) return true;
+        // 4. Android bridge object
         if (typeof window.Android !== 'undefined') return true;
+        // 5. PWABuilder marker
         if (window.__PWABuilder__) return true;
         return false;
     }
+
+    // Log detection result to console (so you can verify it's working)
+    console.log('🔍 APK detection result:', isRunningInAPK() ? 'APK mode – modal hidden' : 'Browser mode – modal active');
 
     // If it's the APK, do nothing – the user has paid for the app.
     if (isRunningInAPK()) return;
@@ -2641,7 +2655,6 @@
 
     // Intercept all clicks/touches on the page (capturing phase)
     document.addEventListener('click', function(e) {
-        // If the click is inside the modal, don't re‑trigger
         if (modal.contains(e.target)) return;
         e.stopPropagation();
         showModal();
@@ -2660,7 +2673,7 @@
         });
     }
 
-    // Also close if user clicks the dark background (optional)
+    // Also close if user clicks the dark background
     modal.addEventListener('click', function(e) {
         if (e.target === modal) {
             modal.classList.remove('active');
