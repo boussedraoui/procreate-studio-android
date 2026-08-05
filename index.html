@@ -2534,5 +2534,139 @@
     }
 })();
 </script>
+
+
+
+
+    <!-- Website Purchase Lock (browser only, hidden in APK) -->
+<style>
+#purchaseLockModal {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0, 0, 0, 0.88);
+    backdrop-filter: blur(6px);
+    z-index: 99999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+#purchaseLockModal.active {
+    display: flex;
+}
+#purchaseLockModal .modal-box {
+    background: var(--surface, #1e1e1e);
+    border: 1px solid var(--border, #3a3a3c);
+    border-radius: var(--radius, 16px);
+    padding: 30px 24px;
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.8);
+}
+#purchaseLockModal h2 {
+    color: var(--accent2, #4ecdc4);
+    margin-bottom: 12px;
+    font-size: 22px;
+}
+#purchaseLockModal p {
+    color: var(--text, #e0e0e0);
+    font-size: 15px;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+#purchaseLockModal .gumroad-btn {
+    display: inline-block;
+    padding: 14px 28px;
+    background: var(--accent2, #4ecdc4);
+    color: #000;
+    font-weight: bold;
+    border-radius: 40px;
+    text-decoration: none;
+    font-size: 16px;
+    transition: transform 0.2s;
+    margin-bottom: 12px;
+}
+#purchaseLockModal .gumroad-btn:hover {
+    transform: scale(1.03);
+}
+#purchaseLockModal .close-btn {
+    background: transparent;
+    border: 1px solid var(--border, #3a3a3c);
+    color: var(--text, #e0e0e0);
+    padding: 8px 20px;
+    border-radius: 30px;
+    font-size: 13px;
+    cursor: pointer;
+    display: inline-block;
+}
+#purchaseLockModal .close-btn:hover {
+    background: var(--surface2, #2a2a2e);
+}
+</style>
+
+<div id="purchaseLockModal">
+    <div class="modal-box">
+        <h2>🔒 App Not Installed</h2>
+        <p>You are using the web version. To unlock the full experience, please purchase the app and install it on your device.</p>
+        <a href="https://2246386117503.gumroad.com/l/iwvxbk" target="_blank" rel="noopener noreferrer" class="gumroad-btn">💎 Buy Now on Gumroad</a>
+        <br>
+        <button class="close-btn" id="purchaseLockClose">Close</button>
+    </div>
+</div>
+
+<script>
+(function() {
+    // ----- APK detection (identical to previous working one) -----
+    function isRunningInAPK() {
+        var ua = navigator.userAgent.toLowerCase();
+        if (ua.indexOf('android') !== -1 && (ua.indexOf('wv') !== -1 || ua.indexOf('twa') !== -1)) return true;
+        if (typeof window.Android !== 'undefined') return true;
+        if (window.__PWABuilder__) return true;
+        return false;
+    }
+
+    // If it's the APK, do nothing – the user has paid for the app.
+    if (isRunningInAPK()) return;
+
+    // ----- Show the purchase modal on any click/touch -----
+    var modal = document.getElementById('purchaseLockModal');
+    var closeBtn = document.getElementById('purchaseLockClose');
+
+    function showModal() {
+        modal.classList.add('active');
+    }
+
+    // Intercept all clicks/touches on the page (capturing phase)
+    document.addEventListener('click', function(e) {
+        // If the click is inside the modal, don't re‑trigger
+        if (modal.contains(e.target)) return;
+        e.stopPropagation();
+        showModal();
+    }, true);
+
+    document.addEventListener('touchstart', function(e) {
+        if (modal.contains(e.target)) return;
+        e.stopPropagation();
+        showModal();
+    }, { passive: true, capture: true });
+
+    // Close button inside the modal
+    if (closeBtn) {
+        closeBtn.addEventListener('click', function() {
+            modal.classList.remove('active');
+        });
+    }
+
+    // Also close if user clicks the dark background (optional)
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            modal.classList.remove('active');
+        }
+    });
+})();
+</script>
 </body>
 </html>
