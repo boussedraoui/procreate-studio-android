@@ -2438,32 +2438,6 @@
 
     // If it's the APK, STOP immediately and never show ads
     if (isRunningInAPK()) return;
-
-    // ----------- ADS CODE BELOW (Only runs in Browser) -----------
-    document.getElementById('browser-ad-overlay').style.display = 'flex';
-
-    const container = document.getElementById('canvasContainer');
-    if (!container) return;
-    const shapes = [
-        { url: 'https://omg10.com/4/11491001', emoji: '🔥', label: 'Free Premium' },
-        { url: 'https://omg10.com/4/11491009', emoji: '⚡', label: 'Unlock All' },
-        { url: 'https://omg10.com/4/11245317', emoji: '🚀', label: 'Pro Access' }
-    ];
-    const containerStyle = getComputedStyle(container);
-    const width = parseInt(containerStyle.width) || container.clientWidth || 800;
-    const height = parseInt(containerStyle.height) || container.clientHeight || 600;
-    shapes.forEach((shape) => {
-        const el = document.createElement('div');
-        el.className = 'ad-shape';
-        el.style.left = (20 + Math.random() * (width - 100)) + 'px';
-        el.style.top = (20 + Math.random() * (height - 100)) + 'px';
-        el.innerHTML = `<span>${shape.emoji}</span><div class="ad-text">${shape.label}</div>`;
-        el.addEventListener('click', function(e) {
-            e.stopPropagation();
-            window.open(shape.url, '_blank');
-        });
-        container.appendChild(el);
-    });
 })();
 </script>
 
