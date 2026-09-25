@@ -1,3 +1,5 @@
+const CACHE_NAME = 'v2';
+
 self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open('procreate-store').then((cache) => cache.addAll([
